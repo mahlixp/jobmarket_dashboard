@@ -299,7 +299,7 @@
   </div>
 
   <!-- Charts Row 2 -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
         <div class="dashboard-card">
         <div class="card-header">
@@ -333,17 +333,17 @@
 
 
   <!-- Charts Row 3 -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="dashboard-card">
-      <div class="card-header">
-        <h2 class="text-lg font-semibold">Répartition des offres par région</h2>
-      </div>
-      <div class="card-body">
-        <div class="chart-container">
-          <canvas id="regionChart"></canvas>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="dashboard-card">
+        <div class="card-header">
+            <h2 class="text-lg font-semibold">Répartition des offres par région</h2>
         </div>
-      </div>
-    </div>
+            <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="regionChart"></canvas>
+                    </div>
+                </div>
+        </div>
 
         <div class="dashboard-card">
         <div class="card-header">
@@ -364,67 +364,70 @@
   <!-- Charts Row 4 -->
   
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+ <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
-         <div class="dashboard-card">
-        <div class="card-header">
-            <h2 class="text-lg font-semibold">Répartition des offres par langues</h2>
-        </div>
-        <div class="card-body">
-            <div class="chart-container">
-            <canvas id="languagesChart"></canvas>
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h2 class="text-lg font-semibold">Répartition des offres par langues</h2>
             </div>
-        </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="languagesChart"></canvas>
+                </div>
+            </div>
         </div>
 
         <div class="dashboard-card">
-        <div class="card-header">
-            <h2 class="text-lg font-semibold">Top Soft Skills</h2>
-        </div>
-        <div class="card-body">
-            <div class="chart-container">
-            <canvas id="softSkillsChart"></canvas>
-            </div>
-        </div>
+                <div class="card-header">
+                    <h2 class="text-lg font-semibold">Top Soft Skills</h2>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="softSkillsChart"></canvas>
+                    </div>
+                </div>
         </div>
 
        
-  </div>
+    </div>
 
   <!-- Final Chart -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
     <div class="dashboard-card">
         <div class="card-header">
-        <h2 class="text-lg font-semibold">Postes les plus demandés en Data et IA</h2>
+            <h2 class="text-lg font-semibold">Postes les plus demandés en Data et IA</h2>
         </div>
         <div class="card-body">
-        <div class="chart-container">
-            <canvas id="jobChart"></canvas>
+            <div class="chart-container">
+                <canvas id="jobChart"></canvas>
+            </div>
         </div>
-        </div>
-        </div>
+    </div>
 
-    <div class="mt-10" id="certSection">
-        <h2 class="text-xl font-semibold mb-4">Top 12 Certifications</h2>
+     <div id="certSection" class="md:mt-0 mt-10">
+        <div class="dashboard-card">
+        <div class="card-header">
+            <h2 class="text-lg font-semibold">Top 12 Certifications</h2>
+        </div>
         <div id="certGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             <!-- Template masqué : cloné en JS -->
             <div id="certCardTemplate"
-                class="cert-card bg-white rounded-xl shadow-sm p-4 flex flex-col justify-between"
-                style="display: none; max-width: 160px; position: relative;">
-            <!-- Ligne icône + titre + badge -->
-            <div class="flex items-center justify-between mb-2">
-                <i class="cert-icon text-2xl text-primary"></i>
-                <div class="cert-badge bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold">
-                <span class="cert-count">0</span>
+                    class="cert-card bg-white rounded-xl shadow-sm p-4 flex flex-col justify-between"
+                    style="display: none; max-width: 160px; position: relative;">
+                <!-- Ligne icône + titre + badge -->
+                <div class="flex items-center justify-between mb-2">
+                    <i class="cert-icon text-2xl text-primary"></i>
+                    <div class="cert-badge bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold">
+                    <span class="cert-count">0</span>
                 </div>
             </div>
             <!-- Nom de la certification -->
-            <div class="text-base font-medium cert-name mb-1 break-words">Certification</div>
-            <!-- Sous-texte fixe -->
-            <div class="text-sm text-gray-500">Certification</div>
-            </div>
+                <div class="text-base font-medium cert-name mb-1 break-words">Certification</div>
+                <!-- Sous-texte fixe -->
+                    <div class="text-sm text-gray-500">Certification</div>
+                </div>
         </div>
-        </div>
+    </div>
 
 
 </div>
