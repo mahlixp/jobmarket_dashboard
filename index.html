@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Marché de l'Emploi en DATA et IA au Maroc | DecisiveAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/inter-ui@3.19.3/inter.min.css" rel="stylesheet">
+
+<!-- Include Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <style>
+        :root {
+            --primary: #0d2e63;
+            --primary-light: #2057a3;
+            --accent: #00a3e0;
+            --accent-light: #73c7ed;
+            --gray-light: #f9fafb;
+            --gray: #e5e7eb;
+            --gray-dark: #6b7280;
+            --text-dark: #111827;
+            --text-medium: #4b5563;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--gray-light);
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        .header-bg {
+            background-color: var(--primary);
+            background-image: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+        }
+
+        .filter-container {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .filter-wrapper {
+            width: 100%;
+            position: relative;
+        }
+
+        .filter-wrapper select {
+            width: 100%;
+            padding: 0.75rem 2.5rem 0.75rem 1rem;
+            background-color: white;
+            border: 1px solid var(--gray);
+            border-radius: 0.375rem;
+            appearance: none;
+            color: var(--text-dark);
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .filter-wrapper::after {
+            content: "\f078";
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: var(--primary);
+        }
+
+        .filter-wrapper label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-medium);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .dashboard-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .card-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray);
+            text-align: center;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+            min-height: 0;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 48vh;
+            min-height: 200px;
+        }
+
+        .key-metric {
+            background-color: var(--primary);
+            color: white;
+            border-radius: 0.5rem;
+            box-shadow: var(--box-shadow);
+            padding: 1rem;
+            text-align: center;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .key-metric-value {
+            font-size: 1.875rem;
+            font-weight: 700;
+            line-height: 2.25rem;
+        }
+
+        .key-metric-label {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .footer {
+            background-color: white;
+            border-top: 1px solid var(--gray);
+            padding: 1.5rem 0;
+            margin-top: 2rem;
+        }
+
+        @media print {
+            body {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                background-color: white;
+            }
+
+            .container {
+                width: 100%;
+                max-width: 100%;
+                padding: 0;
+            }
+
+            .dashboard-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #e5e7eb;
+            }
+        }
+
+        /* (à placer dans ton fichier CSS ou via Tailwind Config) */
+            .cert-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            }
+
+           
+
+ 
+
+    </style>
+</head>
+
+<body>
+<div class="header-bg py-6">
+  <div class="container mx-auto px-4">
+    <div class="flex flex-col md:flex-row items-center justify-between">
+      <div class="flex items-center mb-4 md:mb-0">
+        <img src="logo.png" alt="Decisive AI Logo" class="h-12">
+        <div class="ml-4 border-l border-white border-opacity-30 pl-4">
+          <h1 class="text-2xl font-bold">Analyse du marché de l'emploi en DATA et IA au Maroc</h1>
+          <!-- <p class="text-sm text-white text-opacity-90"> -->
+            
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container mx-auto px-4 pb-12 mt-8">
+  <!-- Key Metrics -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-6">
+     <div class="key-metric rounded-lg p-3 flex flex-col items-center" style="background: linear-gradient(to bottom right, #0d2e63, #0d2e63); color: rgb(255, 255, 255);">
+      <i class="fas fa-list-alt mb-1 text-xl opacity-90"></i>
+      <div class="key-metric-value text-lg font-semibold" id="totalOffres">--</div>
+      <div class="key-metric-label text-xs opacity-80">Total des offres</div>
+    </div>
+    <!-- Région principale -->
+    <div class="key-metric rounded-lg p-3 flex flex-col items-center" style="background: linear-gradient(to bottom right, #2057a3, #2057a3); color: white;">
+      <i class="fas fa-map-marker-alt mb-1 text-xl opacity-90"></i>
+      <div class="key-metric-value text-lg font-semibold" id="topRegion">--</div>
+      <div class="key-metric-label text-xs opacity-80">Région principale</div>
+    </div>
+    <!-- Poste le plus demandé -->
+    <div class="key-metric rounded-lg p-3 flex flex-col items-center" style="background: linear-gradient(to bottom right, #00a3e0, #00a3e0); color: white;">
+      <i class="fas fa-user-tie mb-1 text-xl opacity-90"></i>
+      <div class="key-metric-value text-lg font-semibold" id="topJob">--</div>
+      <div class="key-metric-label text-xs opacity-80">Poste le plus demandé</div>
+    </div>
+    <!-- Total des offres -->
+
+    <!-- Niveau d'études le plus demandé -->
+    <div class="key-metric rounded-lg p-3 flex flex-col items-center" style="background: linear-gradient(to bottom right, #00a3e0, #00a3e0); color: white;">
+      <i class="fas fa-graduation-cap mb-1 text-xl opacity-90"></i>
+      <div class="key-metric-value text-lg font-semibold" id="topStudies">--</div>
+      <div class="key-metric-label text-xs opacity-80">Niveau d'études le plus demandé</div>
+    </div>
+    <!-- Technologie la plus utilisée -->
+    <div class="key-metric rounded-lg p-3 flex flex-col items-center" style="background: linear-gradient(to bottom right, #2057a3, #2057a3); color: white;">
+      <i class="fas fa-code mb-1 text-xl opacity-90"></i>
+      <div class="key-metric-value text-lg font-semibold" id="topTech">--</div>
+      <div class="key-metric-label text-xs opacity-80">Technologie la plus utilisée</div>
+    </div>
+  </div>
+
+
+  <!-- Filters -->
+<!-- Filters (version allégée) -->
+<div class="filter-container sticky top-24 bg-white/95 z-40 shadow-sm
+            py-2 px-4 mb-4">
+  <div class="flex items-center mb-2">
+    <i class="fas fa-filter mr-2 text-primary"></i>
+    <h2 class="text-base font-medium">Filtres d'analyse</h2>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+    <div class="filter-wrapper">
+      <label for="jobFilter" class="text-sm">Poste</label>
+      <select id="jobFilter" class="text-sm py-1">
+        <option value="all">Tous les postes</option>
+      </select>
+    </div>
+    <div class="filter-wrapper">
+      <label for="contractFilter" class="text-sm">Type de contrat</label>
+      <select id="contractFilter" class="text-sm py-1">
+        <option value="all">Tous les contrats</option>
+      </select>
+    </div>
+    <div class="filter-wrapper">
+      <label for="regionFilter" class="text-sm">Région</label>
+      <select id="regionFilter" class="text-sm py-1">
+        <option value="all">Toutes les régions</option>
+      </select>
+    </div>
+    <div class="filter-wrapper">
+      <label for="sectorFilter" class="text-sm">Secteur</label>
+      <select id="sectorFilter" class="text-sm py-1">
+        <option value="all">Tous les secteurs</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+  <!-- Charts Row 1 -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="dashboard-card">
+      <div class="card-header">
+        <h2 class="text-lg font-semibold">Répartition des offres par niveau d'études</h2>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="studiesChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="dashboard-card">
+      <div class="card-header">
+        <h2 class="text-lg font-semibold">Top 10 technologies demandées</h2>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="techChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 2 -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <div class="dashboard-card">
+        <div class="card-header">
+            <h2 class="text-lg font-semibold">Répartition des offres par type de contrat</h2>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+            <canvas id="contractChart"></canvas>
+            </div>
+        </div>
+        </div>
+        
+
+
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h2 class="text-lg font-semibold">Répartition des offres par niveau d'expérience</h2>
+            </div>
+            <div class="card-body">
+              <div class="chart-container">
+                <canvas id="experienceChart"></canvas>
+                </div>
+            </div>
+            
+        </div>
+    
+  </div>
+
+  
+
+
+
+  <!-- Charts Row 3 -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="dashboard-card">
+      <div class="card-header">
+        <h2 class="text-lg font-semibold">Répartition des offres par région</h2>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="regionChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+        <div class="dashboard-card">
+        <div class="card-header">
+            <h2 class="text-lg font-semibold">Répartition des offres par secteur</h2>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+            <canvas id="sectorChart"></canvas>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    
+
+
+
+  <!-- Charts Row 4 -->
+  
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+         <div class="dashboard-card">
+        <div class="card-header">
+            <h2 class="text-lg font-semibold">Répartition des offres par langues</h2>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+            <canvas id="languagesChart"></canvas>
+            </div>
+        </div>
+        </div>
+
+        <div class="dashboard-card">
+        <div class="card-header">
+            <h2 class="text-lg font-semibold">Top Soft Skills</h2>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+            <canvas id="softSkillsChart"></canvas>
+            </div>
+        </div>
+        </div>
+
+       
+  </div>
+
+  <!-- Final Chart -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="dashboard-card">
+        <div class="card-header">
+        <h2 class="text-lg font-semibold">Postes les plus demandés en Data et IA</h2>
+        </div>
+        <div class="card-body">
+        <div class="chart-container">
+            <canvas id="jobChart"></canvas>
+        </div>
+        </div>
+        </div>
+
+    <div class="mt-10" id="certSection">
+        <h2 class="text-xl font-semibold mb-4">Top 12 Certifications</h2>
+        <div id="certGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <!-- Template masqué : cloné en JS -->
+            <div id="certCardTemplate"
+                class="cert-card bg-white rounded-xl shadow-sm p-4 flex flex-col justify-between"
+                style="display: none; max-width: 160px; position: relative;">
+            <!-- Ligne icône + titre + badge -->
+            <div class="flex items-center justify-between mb-2">
+                <i class="cert-icon text-2xl text-primary"></i>
+                <div class="cert-badge bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold">
+                <span class="cert-count">0</span>
+                </div>
+            </div>
+            <!-- Nom de la certification -->
+            <div class="text-base font-medium cert-name mb-1 break-words">Certification</div>
+            <!-- Sous-texte fixe -->
+            <div class="text-sm text-gray-500">Certification</div>
+            </div>
+        </div>
+        </div>
+
+
+</div>
+<!-- <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"> -->
+<!-- Certifications Section -->
+
+</div>
+
+
+<!-- CHHHHHATBOT ADDDING -->
+
+<!-- Add this button at the bottom of your Index.html body, just before the closing </body> tag -->
+<!-- Chatbot button with icon -->
+
+
+
+
+
+    
+    <footer class="footer">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center mb-4 md:mb-0">
+                <img src="https://decisiveai.ma/wp-content/uploads/2024/12/Logo-Decisive-AI-PNG.png"
+                    alt="Decisive AI Logo" class="h-8 mr-3">
+                <p class="text-sm text-gray-600">© 2025 DecisiveAI. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- SCRIPPPPTESS+++++++++++++++++++++++++++++++++++++ -->
+
+
+
+    <script>
+
+
+
+
+       
+
+
+        Chart.register(ChartDataLabels);
+
+        const themeColors = {
+            primary: '#0d2e63',
+            primaryLight: '#2057a3',
+            accent: '#00a3e0',
+            accentLight: '#73c7ed',
+            gray: '#e5e7eb',
+            grayDark: '#6b7280'
+        };
+
+        let charts = {
+            studiesChart: null,
+            techChart: null,
+            contractChart: null,
+            regionChart: null,
+            experienceChart: null,
+            sectorChart: null,
+            jobChart: null,
+            softChart: null,
+            langChart: null,
+            
+        };
+
+        function generateBlueShades(count) {
+            const shades = [];
+            const startColor = [13, 46, 99];
+            const endColor = [115, 199, 237];
+            for (let i = 0; i < count; i++) {
+                const ratio = count > 1 ? i / (count - 1) : 0;
+                const r = Math.round(startColor[0] + (endColor[0] - startColor[0]) * ratio);
+                const g = Math.round(startColor[1] + (endColor[1] - startColor[1]) * ratio);
+                const b = Math.round(startColor[2] + (endColor[2] - startColor[2]) * ratio);
+                shades.push(`rgb(${r}, ${g}, ${b})`);
+            }
+            return shades;
+        }
+
+
+/////////////////////////////////CONTRACT/////////////////////////////////////
+        // 1) votre fonction de normalisation en JS
+        function normalizeContract(raw) {
+            const s = (raw || '').toString().trim().toUpperCase();
+            if (!s || s === 'NOT SPECIFIED') return null;
+            if (s.includes('CDI') && s.includes('FREELANCE')) return 'CDI';
+            if (s.includes('FULL TIME') || s.includes('PERMANENT')) return 'PERMANENT';
+
+            // regrouper « petits » sous AUTRE CONTRAT
+            const small = new Set(['A DISCUTER','MISSION','ONE-TIME TASK','REGULAR','PART-TIME']);
+            if (small.has(s)) return 'AUTRE CONTRAT';
+
+            return s;
+            }
+
+
+
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.font.size = 12;
+        Chart.defaults.color = themeColors.grayDark;
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(13, 46, 99, 0.8)';
+        Chart.defaults.plugins.tooltip.titleFont = { size: 13, weight: 'bold' };
+        Chart.defaults.plugins.legend.labels.usePointStyle = true;
+
+        function createVerticalGradient(ctx, chartArea, startColor, endColor) {
+            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            gradient.addColorStop(0, startColor);
+            gradient.addColorStop(1, endColor);
+            return gradient;
+        }
+
+
+        fetch('DATA_PFE_VF_20_05_dash_chat.csv')
+            .then(response => response.text())
+            .then(csvText => {
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function (results) {
+                        const data = results.data;
+                        console.log('Raw data length:', data.length);
+
+                        // Use Job_Title directly (no allowed jobs filtering)
+                        const jobs = [...new Set(data.map(row => row['Job_Title']).filter(v => v && v.toLowerCase() !== 'not specified'))];
+
+                        // Use Type_Contrat directly (filter out Not specified)
+                        // 2) on construit ensuite le Set des contrats normés
+                        const contracts = [
+                        ...new Set(
+                            data
+                            .map(row => normalizeContract(row['Type_Contrat']))
+                            .filter(v => v)  // on enlève les nulls et "NOT SPECIFIED"
+                        )
+                        ];
+
+
+                        // Use region directly (filter out Not specified)
+                        const regions = [...new Set(data.map(row => row['region'])
+                            .filter(v => v && v.toLowerCase() !== 'not specified'))]
+                            .sort((a, b) => {
+                                const countA = data.filter(row => row['region'] === a).length;
+                                const countB = data.filter(row => row['region'] === b).length;
+                                return countB - countA;
+                            });
+
+                        // Use Sector directly (filter out Not specified)
+                        const sectors = [...new Set(data.map(row => row['Sector'])
+                            .filter(v => v && v.toLowerCase() !== 'not specified'))];
+
+                        const jobFilter = document.getElementById('jobFilter');
+                        const contractFilter = document.getElementById('contractFilter');
+                        const regionFilter = document.getElementById('regionFilter');
+                        const sectorFilter = document.getElementById('sectorFilter');
+
+                        jobs.forEach(job => {
+                            const option = document.createElement('option');
+                            option.value = job;
+                            option.textContent = job;
+                            jobFilter.appendChild(option);
+                        });
+
+                        contracts.forEach(contract => {
+                            const option = document.createElement('option');
+                            option.value = contract;
+                            option.textContent = contract;
+                            contractFilter.appendChild(option);
+                        });
+
+                        regions.forEach(region => {
+                            const option = document.createElement('option');
+                            option.value = region;
+                            option.textContent = region;
+                            regionFilter.appendChild(option);
+                        });
+
+                        sectors.forEach(sector => {
+                            const option = document.createElement('option');
+                            option.value = sector;
+                            option.textContent = sector;
+                            sectorFilter.appendChild(option);
+                        });
+
+                        function updateCharts(selectedJob, selectedContract, selectedRegion, selectedSector) {
+                            let filteredData = data;
+                            if (selectedJob !== 'all') {
+                                filteredData = filteredData.filter(row => row['Job_Title'] === selectedJob);
+                            }
+                            if (selectedContract !== 'all') {
+                                filteredData = filteredData.filter(row => row['Type_Contrat'] === selectedContract);
+                            }
+                            if (selectedRegion !== 'all') {
+                                filteredData = filteredData.filter(row => row['region'] === selectedRegion);
+                            }
+                            if (selectedSector !== 'all') {
+                                filteredData = filteredData.filter(row => row['Sector'] === selectedSector);
+                            }
+
+
+                            const totalOffers = filteredData.length;
+                            console.log('Filtered data length:', filteredData.length, 'Total offers:', totalOffers);
+
+                            // Update key metrics using new column names
+                            const regionCounts = {};
+                            filteredData.forEach(row => {
+                                const region = row['region'];
+                                if (region && region.toLowerCase() !== 'not specified') {
+                                    regionCounts[region] = (regionCounts[region] || 0) + 1;
+                                }
+                            });
+                            const topRegionEntry = Object.entries(regionCounts).sort((a, b) => b[1] - a[1])[0];
+                            document.getElementById('topRegion').textContent = topRegionEntry ? topRegionEntry[0] : "N/A";
+
+                            const jobCounts = {};
+                            filteredData.forEach(row => {
+                                const job = row['Job_Title'];
+                                if (job && job.toLowerCase() !== 'not specified') {
+                                    jobCounts[job] = (jobCounts[job] || 0) + 1;
+                                }
+                            });
+                            const topJobEntry = Object.entries(jobCounts).sort((a, b) => b[1] - a[1])[0];
+                            document.getElementById('topJob').textContent = topJobEntry ? topJobEntry[0] : "N/A";
+
+                            // 1) Compter les niveaux d’études (inchangé)
+
+
+                            // const studiesCounts = {};
+                            // filteredData.forEach(row => {
+                            // const studies = row['level_study'];
+                            // if (studies && studies.toLowerCase() !== 'not specified' && studies.toLowerCase() != 'non spécifié') {
+                            //     studiesCounts[studies] = (studiesCounts[studies] || 0) + 1;
+                            // }
+                            // });
+
+
+                            const studies = ['Bac +3', 'Bac +4', 'Bac +5', 'Bac +8'];
+                            const studiesCounts = studies.map(level =>
+                                filteredData.filter(row => row['level_study'] === level).length);
+                            const totalStudiesOffers = studiesCounts.reduce((sum, count) => sum + count, 0);
+
+
+                            // // 2) Transformer en tableau et trier en décroissant
+                            // const studiesEntries = Object.entries(studiesCounts)
+                            //   .sort((a, b) => b[1] - a[1]);  // tri décroissant selon le compte
+
+                            // // 3) Préparer les labels et les données dans l’ordre trié
+                            //     const studiesLabels  = studiesEntries.map(e => e[0]);
+                            //     const studiesCountsData = studiesEntries.map(e => e[1]);
+                            //     const totalStudiesOffers   = studiesCountsData.reduce((sum, v) => sum + v, 0);
+
+                            // 4) Afficher la carte “Top Studies”
+                            // 3) Trouve la valeur max et son index
+                            const maxCount = Math.max(...studiesCounts);
+                            const maxIndex = studiesCounts.indexOf(maxCount);
+
+                            // 4) Affiche le libellé, pas l’index
+                            const topStudiesLabel = maxIndex >= 0 ? studies[maxIndex] : 'N/A';
+                            document.getElementById('topStudies').textContent = topStudiesLabel;
+
+
+                            // Use skills_processed instead of skills
+                            const techCounts = {};
+                            filteredData.forEach(row => {
+                                const techs = row['technologies'] ?
+                                    row['technologies'].split(',').map(t => t.trim()) : [];
+                                techs.forEach(tech => {
+                                    if (tech && tech.toLowerCase() !== 'not specified' && tech.toLowerCase() != "non spécifié") {
+                                        techCounts[tech] = (techCounts[tech] || 0) + 1;
+                                    }
+                                });
+                            });
+                            const topTechEntry = Object.entries(techCounts).sort((a, b) => b[1] - a[1])[0];
+                            document.getElementById('topTech').textContent = topTechEntry ? topTechEntry[0] : "N/A";
+                            
+                            // Et juste après :
+                            const totalOffersCount = filteredData.length;
+                            document.getElementById('totalOffres').textContent = totalOffersCount;
+
+                            // Studies chart using level_study
+                            // const studies = [...new Set(data.map(row => row['level_study'])
+                            //     .filter(v => v && v.toLowerCase() !== 'not specified' && v.toLowerCase() !== 'non spécifié'))];
+                            // const studiesCountsData = studies.map(study =>
+                            //     filteredData.filter(row => row['level_study'] === study).length);
+                            // const totalStudiesOffers = studiesCountsData.reduce((sum, count) => sum + count, 0);
+
+                            // Tech chart using skills_processed
+                            const topTechs = Object.entries(techCounts)
+                                .sort((a, b) => b[1] - a[1])
+                                .slice(0, 10);
+                            const techLabels = topTechs.map(t => t[0]);
+                            const techData = topTechs.map(t => t[1]);
+                            const totalTechOffers = techData.reduce((sum, count) => sum + count, 0);
+
+                            // Contract chart using Type_Contrat
+                            const contractCountsArray = contracts.map(contract =>
+                                filteredData.filter(row => row['Type_Contrat'] === contract).length);
+                            const totalContractOffers = contractCountsArray.reduce((sum, count) => sum + count, 0);
+
+                            // Region chart using region (no ordering)
+                            const regionData = regions.map(region =>
+                                filteredData.filter(row => row['region'] === region).length);
+                            const totalRegionOffers = regionData.reduce((sum, count) => sum + count, 0);
+
+                            // Experience chart using experience_years
+
+
+                            // 1) Ton ordre cible
+                            const experiences = ['0 ans', '1 an', '2 ans', '3 ans', '5 ans', '6 ans', '7 ans', '8 ans', '10 ans','12 ans'];
+                            const experienceCounts = experiences.map(exp =>
+                                filteredData.filter(row => row['experience_years'] === exp).length);
+                            const totalExperienceOffers = experienceCounts.reduce((sum, count) => sum + count, 0);
+
+
+                            // Sector chart using Sector
+                            const sectorCounts = {};
+                            filteredData.forEach(row => {
+                                const sector = row['Sector'];
+                                if (sector && sector.toLowerCase() !== 'not specified') {
+                                    sectorCounts[sector] = (sectorCounts[sector] || 0) + 1;
+                                }
+                            });
+                            const sortedSectors = Object.entries(sectorCounts)
+                                .sort((a, b) => b[1] - a[1])
+                                .slice(0, 8);
+                            const sectorLabels = sortedSectors.map(s => s[0]);
+                            const sectorData = sortedSectors.map(s => s[1]);
+                            const totalSectorOffers = sectorData.reduce((sum, count) => sum + count, 0);
+
+                            // Job chart using Job_Title
+                            const topJobs = Object.entries(jobCounts)
+                                .sort((a, b) => b[1] - a[1])
+                                .slice(0, 10);
+                            const jobLabels = topJobs.map(j => j[0]);
+                            const jobData = topJobs.map(j => j[1]);
+                            const totalJobOffers = jobData.reduce((sum, count) => sum + count, 0);
+
+                            // Destroy existing charts
+                            Object.values(charts).forEach(chart => {
+                                if (chart) chart.destroy();
+                            });
+
+
+// ============ Filtres TRY ====================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                            // Create all charts with the same configuration as before
+                           charts.studiesChart = new Chart(
+                                document.getElementById('studiesChart').getContext('2d'),
+                                {
+                                    type: 'bar',
+                                    data: {
+                                    labels: studies,
+                                    datasets: [{
+                                        label: 'Nombre d\'offres',
+                                        data: studiesCounts,
+                                        backgroundColor: (context) => {
+                                        const { ctx, chartArea } = context.chart;
+                                        if (!chartArea) return themeColors.primary;
+                                        return createVerticalGradient(
+                                            ctx, chartArea,
+                                            themeColors.primary,
+                                            themeColors.accent
+                                        );
+                                        },
+                                        borderRadius: 4,
+                                        borderWidth: 0
+                                    }]
+                                    },
+                                    options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    aspectRatio: window.innerWidth < 640 ? 1 : 1.5,
+                                    layout: { padding: { top: 10, left: 10, right: 10, bottom: 10 } },
+                                    scales: {
+                                        x: {
+                                        grid: { display: false },
+                                        ticks: { color: '#000000', padding: 8 },
+                                        title: { display: true, text: 'Niveau d\'études', color: '#000000' }
+                                        },
+                                        y: {
+                                        beginAtZero: true,
+                                        grid: { display: false },
+                                        ticks: { color: '#000000', padding: 8 },
+                                        title: { display: true, text: 'Nombre d\'offres', color: '#000000' }
+                                        }
+                                    },
+                                    plugins: {
+                                        legend: { display: false },
+                                        tooltip: {
+                                        callbacks: {
+                                            label: function (context) {
+                                            const value = context.raw;
+                                            const percentage = totalStudiesOffers > 0
+                                                ? (value / totalStudiesOffers * 100).toFixed(0)
+                                                : 0;
+                                            return `${value} offres (${percentage}%)`;
+                                            }
+                                        }
+                                        },
+                                        datalabels: {
+                                        color: '#ffffff',
+                                        anchor: 'end',
+                                        align: 'top',
+                                        offset: -5,
+                                        font: { weight: 'bold' },
+                                        formatter: function (value) {
+                                            return value === 0 ? '' : value;
+                                        }
+                                        }
+                                    }
+                                    }
+                                }
+                                );
+                            charts.techChart = new Chart(
+                                document.getElementById('techChart').getContext('2d'),
+                                {
+                                    type: 'bar',
+                                    data: {
+                                        labels: techLabels,
+                                        datasets: [{
+                                            label: 'Nombre d\'offres',
+                                            data: techData,
+                                            backgroundColor: (context) => {
+                                                const chart = context.chart;
+                                                const { ctx, chartArea } = chart;
+                                                if (!chartArea) return themeColors.accent;
+                                                return createVerticalGradient(ctx, chartArea, themeColors.accent, themeColors.accentLight);
+                                            },
+                                            borderRadius: 4,
+                                            borderWidth: 0
+                                        }]
+                                    },
+                                    options: {
+                                        indexAxis: 'y',
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        aspectRatio: window.innerWidth < 640 ? 1 : 1.5,
+                                        layout: { padding: { top: 10, left: 10, right: 10, bottom: 10 } },
+                                        scales: {
+                                            x: { beginAtZero: true, grid: { display: false }, ticks: { color: '#000000', padding: 8 }, title: { display: true, text: 'Nombre d\'occurrences', color: '#000000' } },
+                                            y: { grid: { display: false }, ticks: { color: '#000000', padding: 8 }, title: { display: true, text: 'Technologies', color: '#000000' } }
+                                        },
+                                        plugins: {
+                                            legend: { display: false },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function (context) {
+                                                        const value = context.raw;
+                                                        const percentage = totalTechOffers > 0 ? (value / totalTechOffers * 100).toFixed(0) : 0;
+                                                        return `${value} occurrences (${percentage}%)`;
+                                                    }
+                                                }
+                                            },
+                                            datalabels: {
+                                                color: '#ffffff',
+                                                align: 'right',
+                                                anchor: 'end',
+                                                font: { weight: 'bold' },
+                                                formatter: function (value) { return value === 0 ? '' : value; }
+                                            }
+                                        }
+                                    }
+                                }
+                            );
+
+                            charts.contractChart = new Chart(
+                                document.getElementById('contractChart').getContext('2d'),
+                                {
+                                    type: 'doughnut',
+                                    data: {
+                                        labels: contracts,
+                                        datasets: [{
+                                            data: contractCountsArray,
+                                            backgroundColor: generateBlueShades(contracts.length),
+                                            borderWidth: 0,
+                                            hoverOffset: 15
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        aspectRatio: window.innerWidth < 640 ? 1 : 1.5,
+                                        layout: { padding: 20 },
+                                        cutout: '60%',
+                                        plugins: {
+                                            legend: { position: 'right', labels: { padding: 20, usePointStyle: true, pointStyle: 'circle', boxWidth: 8, color: '#000000' } },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function (context) {
+                                                        const value = context.raw;
+                                                        const percentage = totalContractOffers > 0 ? (value / totalContractOffers * 100).toFixed(0) : 0;
+                                                        return `${value} offres (${percentage}%)`;
+                                                    }
+                                                }
+                                            },
+                                            datalabels: {
+                                                color: '#ffffff',
+                                                font: { weight: 'bold' },
+                                                formatter: function (value) {
+                                                    const percentage = totalContractOffers > 0 ? (value / totalContractOffers * 100).toFixed(0) : 0;
+                                                    return percentage < 3 ? '' : percentage + '%';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            );
+
+                            charts.regionChart = new Chart(
+                                document.getElementById('regionChart').getContext('2d'),
+                                {
+                                    type: 'bar',
+                                    data: {
+                                        labels: regions,
+                                        datasets: [{
+                                            label: 'Nombre d\'offres',
+                                            data: regionData,
+                                            backgroundColor: (context) => {
+                                                const chart = context.chart;
+                                                const { ctx, chartArea } = chart;
+                                                if (!chartArea) return themeColors.primary;
+                                                return createVerticalGradient(ctx, chartArea, themeColors.primary, themeColors.primaryLight);
+                                            },
+                                            borderRadius: 4,
+                                            borderWidth: 0
+                                        }]
+                                    },
+                                    options: {
+                                        indexAxis: 'y',
+                                        responsive: true,
+                                        onClick: handleChartClick('region'),
+                                        maintainAspectRatio: false,
+                                        aspectRatio: window.innerWidth < 640 ? 1 : 1.5,
+                                        layout: { padding: { top: 10, left: 10, right: 10, bottom: 10 } },
+                                        scales: {
+                                            x: { beginAtZero: true, grid: { display: false }, ticks: { color: '#000000', padding: 8 }, title: { display: true, text: 'Nombre d\'offres', color: '#000000' } },
+                                            y: { grid: { display: false }, ticks: { color: '#000000', padding: 8 }, title: { display: true, text: 'Régions', color: '#000000' } }
+                                        },
+                                        plugins: {
+                                            legend: { display: false },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function (context) {
+                                                        const value = context.raw;
+                                                        const percentage = totalRegionOffers > 0 ? (value / totalRegionOffers * 100).toFixed(0) : 0;
+                                                        return `${value} offres (${percentage}%)`;
+                                                    }
+                                                }
+                                            },
+                                            datalabels: {
+                                                color: '#ffffff',
+                                                align: 'right',
+                                                anchor: 'end',
+                                                font: { weight: 'bold' },
+                                                formatter: function (value) { return value === 0 ? '' : value; }
+                                            }
+                                        }
+                                    }
+                                }
+                            );
+
+                            charts.experienceChart = new Chart(
+                                document.getElementById('experienceChart').getContext('2d'),
+                                {
+                                    type: 'bar',
+                                    data: {
+                                        labels: experiences,
+                                        datasets: [{
+                                            label: 'Nombre d\'offres',
+                                            data: experienceCounts,
+                                            backgroundColor: (context) => {
+                                                const chart = context.chart;
+                                                const { ctx, chartArea } = chart;
+                                                if (!chartArea) return themeColors.accent;
+                                                return createVerticalGradient(ctx, chartArea, themeColors.accent, themeColors.accentLight);
+                                            },
+                                            borderRadius: 4,
+                                            borderWidth: 0
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        aspectRatio: window.innerWidth < 640 ? 1 : 1.5,
+                                        layout: { padding: { top: 10, left: 10, right: 10, bottom: 10 } },
+                                        scales: {
+                                            x: { grid: { display: false }, ticks: { color: '#000000', padding: 8 }, title: { display: true, text: 'Années d\'expérience', color: '#000000' } },
+                                            y: { beginAtZero: true, grid: { display: false }, ticks: { color: '#000000', padding: 8 }, title: { display: true, text: 'Nombre d\'offres', color: '#000000' } }
+                                        },
+                                        plugins: {
+                                            legend: { display: false },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function (context) {
+                                                        const value = context.raw;
+                                                        const percentage = totalExperienceOffers > 0 ? (value / totalExperienceOffers * 100).toFixed(0) : 0;
+                                                        return `${value} offres (${percentage}%)`;
+                                                    }
+                                                }
+                                            },
+                                            datalabels: {
+                                                color: '#ffffff',
+                                                anchor: 'end',
+                                                align: 'top',
+                                                offset: -5,
+                                                font: { weight: 'bold' },
+                                                formatter: function (value) { return value === 0 ? '' : value; }
+                                            }
+                                        }
+                                    }
+                                }
+                            );
+
+                            charts.sectorChart = new Chart(
+                                document.getElementById('sectorChart').getContext('2d'),
+                                {
+                                    type: 'pie',
+                                    data: {
+                                        labels: sectorLabels,
+                                        datasets: [{
+                                            data: sectorData,
+                                            backgroundColor: generateBlueShades(sectorLabels.length),
+                                            borderWidth: 0,
+                                            hoverOffset: 15
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        aspectRatio: window.innerWidth < 640 ? 1 : 1.5,
+                                        layout: { padding: 20 },
+                                        plugins: {
+                                            legend: { position: 'right', labels: { padding: 20, usePointStyle: true, pointStyle: 'circle', boxWidth: 8, color: '#000000' } },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function (context) {
+                                                        const value = context.raw;
+                                                        const percentage = totalSectorOffers > 0 ? (value / totalSectorOffers * 100).toFixed(0) : 0;
+                                                        return `${value} offres (${percentage}%)`;
+                                                    }
+                                                }
+                                            },
+                                            datalabels: {
+                                                color: '#ffffff',
+                                                font: { weight: 'bold' },
+                                                formatter: function (value) {
+                                                    const percentage = totalSectorOffers > 0 ? (value / totalSectorOffers * 100).toFixed(0) : 0;
+                                                    return percentage < 3 ? '' : percentage + '%';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            );
+
+                            
+                function handleChartClick(filterType) {
+                return function(event, elements) {
+                    if (elements.length === 0) return;
+                    
+                    const chart = this;
+                    const index = elements[0].index;
+                    const value = chart.data.labels[index];
+                    
+                    // Mettre à jour le filtre correspondant
+                    // switch(filterType) {
+                    // case 'job':
+                    //     document.getElementById('jobFilter').value = value;
+                    //     break;
+                    // case 'contract':
+                    //     document.getElementById('contractFilter').value = value;
+                    //     break;
+                    // case 'region':
+                    //     document.getElementById('regionFilter').value = value;
+                    //     break;
+                    // case 'sector':
+                    //     document.getElementById('sectorFilter').value = value;
+                    //     break;
+                    // }
+                    
+
+                    const filterElement = document.getElementById(`${filterType}Filter`);
+    
+                    // Toggle: si on clique sur le même, on désactive
+                    if (filterElement.value === value) {
+                    filterElement.value = 'all';
+                    } else {
+                    filterElement.value = value;
+                    }
+
+                    // Déclencher le rafraîchissement
+                    refreshCharts();
+                };
+                }
+
+                            charts.jobChart = new Chart(
+                                document.getElementById('jobChart').getContext('2d'),
+                                {
+                                    type: 'bar',
+                                    data: {
+                                        labels: jobLabels,
+                                        datasets: [{
+                                            label: 'Nombre d\'offres',
+                                            data: jobData,
+                                            backgroundColor: (context) => {
+                                                const chart = context.chart;
+                                                const { ctx, chartArea } = chart;
+                                                if (!chartArea) return themeColors.primary;
+                                                return createVerticalGradient(ctx, chartArea, themeColors.primary, themeColors.accent);
+                                            },
+                                            borderRadius: 4,
+                                            borderWidth: 0
+                                        }]
+                                    },
+                                    options: {
+                                        indexAxis: 'y',
+                                        onClick: handleChartClick('job'),
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        aspectRatio: window.innerWidth < 640 ? 1 : 1.5,
+                                        layout: { padding: { top: 10, left: 10, right: 10, bottom: 10 } },
+                                        scales: {
+                                            x: { beginAtZero: true, grid: { display: false }, ticks: { color: '#000000', padding: 8 }, title: { display: true, text: 'Nombre d\'offres', color: '#000000' } },
+                                            y: { grid: { display: false }, ticks: { color: '#000000', padding: 8 }, title: { display: true, text: 'Postes', color: '#000000' } }
+                                        },
+                                        plugins: {
+                                            legend: { display: false },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function (context) {
+                                                        const value = context.raw;
+                                                        const percentage = totalJobOffers > 0 ? (value / totalJobOffers * 100).toFixed(0) : 0;
+                                                        return `${value} offres (${percentage}%)`;
+                                                    }
+                                                }
+                                            },
+                                            datalabels: {
+                                                color: '#ffffff',
+                                                align: 'right',
+                                                anchor: 'end',
+                                                font: { weight: 'bold' },
+                                                formatter: function (value) { return value === 0 ? '' : value; }
+                                            }
+                                        }
+                                    }
+                                }
+                            );
+
+
+
+// +++++++++++++++++++++++++++++++++++++++++++=========================================
+
+
+                        const langCounts = {};
+                        filteredData.forEach(r => {
+                            (r.languages || '').split(',').map(s => s.trim()).filter(s=>s&&s.toLowerCase()!=='not specified')
+                                .forEach(s=>langCounts[s]=(langCounts[s]||0)+1);
+                        });
+                        const langEntries = Object.entries(langCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+                        const langLabels = langEntries.map(e=>e[0]);
+                        const langData = langEntries.map(e=>e[1]);
+                        const totallangOffers = langData.reduce((sum, count) => sum + count, 0);
+
+                        // Soft Skills
+                        const softCounts = {};
+                        filteredData.forEach(r => {
+                            (r.soft_skills || '').split(',').map(s => s.trim()).filter(s=>s&&s.toLowerCase()!=='not specified')
+                                .forEach(s=>softCounts[s]=(softCounts[s]||0)+1);
+                        });
+
+                        const softEntries = Object.entries(softCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+                        const softLabels = softEntries.map(e=>e[0]);
+                        const softData = softEntries.map(e=>e[1]);
+
+                        const totalSoftOffers = softData.reduce((sum, count) => sum + count, 0);
+
+                        // Certifications
+                        // const certCounts = {};
+                        // filteredData.forEach(r => {
+                        //     (r.certifications || '').split(',').map(s => s.trim()).filter(s=>s&&s.toLowerCase()!=='not specified')
+                        //         .forEach(s=>certCounts[s]=(certCounts[s]||0)+1);
+                        // });
+                        // const certEntries = Object.entries(certCounts).sort((a,b)=>b[1]-a[1]).slice(0,12);
+                        // const certLabels = certEntries.map(e=>e[0]);
+                        // const certData = certEntries.map(e=>e[1]);
+// ==============================================================================NEXW CERTFICATION ================
+                        // Extrait et compte les certifications
+                        // const certCounts = {};
+                        // data.forEach((r) => {
+                        // (r.certifications || "")
+                        //     .split(",")
+                        //     .map((s) => s.trim())
+                        //     .filter((s) => s && s.toLowerCase() !== "not specified")
+                        //     .forEach((s) => {
+                        //     certCounts[s] = (certCounts[s] || 0) + 1;
+                        //     });
+                        // });
+                        // // Transforme en tableau et trie
+                        // const certificationsData = Object.entries(certCounts)
+                        // .map(([certification, count]) => ({ certification, count }))
+                        // .sort((a, b) => b.count - a.count)
+                        // .slice(0, 12); // top 12
+
+
+             // 1) Mapping des noms de certif. vers leurs icônes FontAwesome (ou autre)
+                const iconMap = {
+                "AWS Certified":        "fab fa-aws",
+                "Google Analytics":     "fab fa-google",
+                "Microsoft Power BI":   "fab fa-microsoft",
+                "Tableau Desktop":      "fas fa-chart-bar",
+                "TensorFlow Developer": "fab fa-tensorflow",
+                "Azure AI Engineer":    "fab fa-microsoft",        // adapter si icône spécifique
+                "Microsoft Certified":  "fas fa-certificate",
+                "Qlik Sense":           "fas fa-chart-pie",
+                // … ajoute les autres si besoin
+                };
+
+                // 2) Calcul des counts (comme tu l’as déjà)
+                const certCounts = {};
+                filteredData.forEach(r => {
+                (r.certifications || '')
+                    .split(',')
+                    .map(s => s.trim())
+                    .filter(s => s && s.toLowerCase() !== 'not specified')
+                    .forEach(cert => {
+                    certCounts[cert] = (certCounts[cert] || 0) + 1;
+                    });
+                });
+
+                const certificationsData = Object.entries(certCounts)
+                .map(([certification, count]) => ({ certification, count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 12);
+
+                // 3) Fonction de rendu des cartes
+                function renderCertCards(dataArray) {
+                const grid = document.getElementById('certGrid');
+                // On supprime tout sauf le template
+                grid.querySelectorAll('.cert-card:not(#certCardTemplate)').forEach(c => c.remove());
+
+                dataArray.forEach(({ certification, count }) => {
+                    const card = document.getElementById('certCardTemplate').cloneNode(true);
+                    card.id = '';
+                    card.style.display = 'flex';
+
+                    // Icône
+                    const iconEl = card.querySelector('.cert-icon');
+                    const faClass = iconMap[certification] || 'fas fa-certificate';
+                    iconEl.className = `cert-icon ${faClass}`;
+
+                    // Nom et count
+                    card.querySelector('.cert-name').textContent = certification;
+                    card.querySelector('.cert-count').textContent = count;
+
+                    grid.appendChild(card);
+                });
+                }
+
+                // 4) Affichage initial
+              renderCertCards(certificationsData);
+
+// =================================================================================================
+                        // === RENDER NEW CHARTS ===
+                        // if(charts.languagesChart) charts.languagesChart.destroy();
+                        // charts.languagesChart = new Chart(
+                        //     document.getElementById('languagesChart').getContext('2d'), {
+                        //         type: 'doughnut',
+                        //         data: { labels: langLabels, datasets:[{ data: langData, backgroundColor: generateBlueShades(langData.length) }]},
+                        //         options:{ cutout:'50%', plugins:{ legend:{ position:'right' } } }
+                        //     }
+                        // );
+                            charts.langChart = new Chart(
+                                document.getElementById('languagesChart').getContext('2d'),
+                                {
+                                    type: 'doughnut',
+                                    data: {
+                                        labels: langLabels,
+                                        datasets: [{
+                                            data: langData,
+                                            backgroundColor: generateBlueShades(contracts.length),
+                                            borderWidth: 0,
+                                            hoverOffset: 15
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        aspectRatio: window.innerWidth < 640 ? 1 : 1.5,
+                                        layout: { padding: 20 },
+                                        cutout: '60%',
+                                        plugins: {
+                                            legend: { position: 'right', labels: { padding: 20, usePointStyle: true, pointStyle: 'circle', boxWidth: 8, color: '#000000' } },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function (context) {
+                                                        const value = context.raw;
+                                                        const percentage = totallangOffers > 0 ? (value / totallangOffers * 100).toFixed(0) : 0;
+                                                        return `${value} offres (${percentage}%)`;
+                                                    }
+                                                }
+                                            },
+                                            datalabels: {
+                                                color: '#ffffff',
+                                                font: { weight: 'bold' },
+                                                formatter: function (value) {
+                                                    const percentage = totallangOffers > 0 ? (value / totallangOffers * 100).toFixed(0) : 0;
+                                                    return percentage < 3 ? '' : percentage + '%';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            );
+
+
+                        if(charts.softSkillsChart) charts.softSkillsChart.destroy();
+                         charts.softChart = new Chart(
+                                document.getElementById('softSkillsChart').getContext('2d'),
+                                {
+                                    type: 'bar',
+                                    data: {
+                                        labels: softLabels,
+                                        datasets: [{
+                                            label: 'Nombre d\'offres',
+                                            data: softData,
+                                            backgroundColor: (context) => {
+                                                const chart = context.chart;
+                                                const { ctx, chartArea } = chart;
+                                                if (!chartArea) return themeColors.accent;
+                                                return createVerticalGradient(ctx, chartArea, themeColors.accent, themeColors.accentLight);
+                                            },
+                                            borderRadius: 4,
+                                            borderWidth: 0
+                                        }]
+                                    },
+                                    options: {
+                                        indexAxis: 'y',
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        aspectRatio: window.innerWidth < 640 ? 1 : 1.5,
+                                        layout: { padding: { top: 10, left: 10, right: 10, bottom: 10 } },
+                                        scales: {
+                                            x: { beginAtZero: true, grid: { display: false }, ticks: { color: '#000000', padding: 8 }, title: { display: true, text: 'Nombre d\'occurrences', color: '#000000' } },
+                                            y: { grid: { display: false }, ticks: { color: '#000000', padding: 8 }, title: { display: true, text: 'Technologies', color: '#000000' } }
+                                        },
+                                        plugins: {
+                                            legend: { display: false },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function (context) {
+                                                        const value = context.raw;
+                                                        const percentage = totalSoftOffers > 0 ? (value / totalSoftOffers * 100).toFixed(0) : 0;
+                                                        return `${value} occurrences (${percentage}%)`;
+                                                    }
+                                                }
+                                            },
+                                            datalabels: {
+                                                color: '#ffffff',
+                                                align: 'right',
+                                                anchor: 'end',
+                                                font: { weight: 'bold' },
+                                                formatter: function (value) { return value === 0 ? '' : value; }
+                                            }
+                                        }
+                                    }
+                                }
+                            );
+
+                        
+                        
+                    }
+                   
+
+
+                    
+                    
+
+                    function refreshCharts() {
+                        updateCharts(
+                            jobFilter.value,
+                            contractFilter.value,
+                            regionFilter.value,
+                            sectorFilter.value
+                            );
+                        }
+
+                        jobFilter.addEventListener('change', refreshCharts);
+                        contractFilter.addEventListener('change', refreshCharts);
+                        regionFilter.addEventListener('change', refreshCharts);
+                        sectorFilter.addEventListener('change', refreshCharts);
+
+                        updateCharts('all', 'all', 'all', 'all');
+                    }
+                });
+            });
+    </script>
+</body>
+
+</html>
